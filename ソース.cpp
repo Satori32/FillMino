@@ -16,7 +16,7 @@ bool Show(const RType& R){
 	for (auto& ooo : R) {
 		for (auto& oo : ooo) {
 			for (auto& o : oo) {
-				std::cout <<(int) o << ",";
+				std::cout <<(int) o << ",\t";
 			}
 			std::cout<<std::endl;
 		}
@@ -102,44 +102,6 @@ bool UnSetMino(DType& M, const DType& D, std::size_t X, std::size_t Y) {
 	return true;
 
 }
-/** /
-bool UnSetMino(DType& M, const DType& D, std::size_t X, std::size_t Y) {
-
-	if (M[Y][X] == 0) { return false; }
-
-	std::size_t PX = std::numeric_limits<std::size_t>::max();
-	std::size_t PY = std::numeric_limits<std::size_t>::max();
-
-	for (std::size_t i = 0; i < D.size(); i++) {
-		for (std::size_t j = 0; j < D[i].size(); j++) {
-			if (D[i][j] == 1) {
-				if (PX > j) { PX = j; }
-				if (PY > i) { PY = i; }
-			}
-		}
-	}	
-	for (std::size_t i = 0; i+PY < D.size(); i++) {
-		for (std::size_t j = 0; j+PX < D[i].size(); j++) {
-			if (D[i+PY][j+PX] != 0) {
-				if (M[i + Y][j + X] == 0) {
-					return false;
-				}
-			}
-		}
-	}
-	for (std::size_t i = 0; i+PY < D.size(); i++) {
-		for (std::size_t j = 0; j+PX < D[i].size(); j++) {
-			if (D[i+PY][j+PX] != 0) {
-				if (M[i + Y][j + X] != 0) {
-					M[i + Y][j + X] = 0;
-				}
-			}
-		}
-	}
-	return true;
-
-}
-/**/
 bool IsFilled(const DType& D, std::size_t C=0) {
 	for (auto& oo : D) {
 		for (auto& o : oo) {
@@ -150,57 +112,7 @@ bool IsFilled(const DType& D, std::size_t C=0) {
 	}
 	return true;
 }
-/** /
-RType MakeHoge(const Mino& D, std::size_t W, std::size_t H) {
 
-	RType R;
-	DType Map;
-
-	std::uintmax_t C = 1;
-
-
-
-	//std::tuple<int, int, DType> SI;
-	std::vector<std::tuple<int, int, int>> SI;
-
-	SI.push_back({ 0,0,0 });
-
-	Map.resize(H);
-	for (auto& o : Map) { o.resize(W); }
-
-
-	for (std::size_t i = 0; i < D.size(); i++) {
-		for (std::size_t j = 0; j < D[i].size(); j++) {
-			for (std::size_t k = 0; k < D[i][j].size(); k++) {
-				if (Map[i][j] != 0) {
-					continue;
-				}
-				if (!UnSetMino(Map, D[i], k, j)) {
-					if (SetMino(Map, D[i], k, j, C % 256) == false) { continue; }
-					Show({ Map });
-					C++;
-					SI.push_back({ k,j,i });
-					if (IsFilled(Map)) {
-						R.push_back(Map);
-						//UnSetMino(Map, D[h], j, i);
-						break;
-					}
-					break;
-				}
-
-
-			}
-		}
-	}
-	return R;
-
-}
-
-	
-/**/
-
-
-/**/
 typedef std::tuple<DType, std::size_t, std::size_t, std::size_t> Data;
 typedef std::vector<Data> St;
 RType MakeHoge(const Mino& D, std::size_t W, std::size_t H) {
@@ -211,7 +123,7 @@ RType MakeHoge(const Mino& D, std::size_t W, std::size_t H) {
 	M.resize(H);
 	for (auto& o : M) { o.resize(W); }
 	
-	std::uintmax_t C = 1;
+	std::uint8_t C = 1;
 
 	St V;
 
@@ -230,26 +142,31 @@ RType MakeHoge(const Mino& D, std::size_t W, std::size_t H) {
 			k = std::get<3>(X);
 			V.pop_back();
 		}
-//		for (std::size_t Z = 0; Z < D.size(); Z++) {
-			for (i = 0; i < H; i++) {
-				for (j = 0; j < W; j++) {
-					for (k; k < D.size(); k++) {
-						if (SetMino(M, D[k], j, i, 1)) {
-							if (IsFilled(M)) {
-								R.push_back(M);
-							}
-							else {
-								V.push_back({ M,i,j,k + 1 });
-								UnSetMino(M, D[k], j, i);
-							}
+		//		for (std::size_t Z = 0; Z < D.size(); Z++) {
+		for (i; i < H; i++) {
+			for (j; j < W; j++) {
+				for (k; k < D.size(); k++) {
+
+					if (SetMino(M, D[k], j, i, C)) {
+						C++;
+						if (!C) { C++; }
+						if (IsFilled(M)) {
+							R.push_back(M);
 						}
-
+						else {
+							V.push_back({ M,i,j,k + 1 });
+							UnSetMino(M, D[k], j, i);
+						}
 					}
-					if (k >= D.size())k = 0;
-				}
-			}
 
-//		}
+				}
+				if (k >= D.size())k = 0;
+			}
+			if (j >= W) j = 0;
+		}
+		if (i >= H)i = 0;
+
+		//		}
 	}
 
 	return R;
@@ -287,21 +204,24 @@ int main() {
 			{0,0},
 		},
 	};
+	{
 
-	RType R = MakeHoge(M, 4,4);
+		RType R = MakeHoge(M, 6, 8);
 
-	std::sort(R.begin(), R.end());
-	R.erase(std::unique(R.begin(), R.end()),R.end());
+		std::sort(R.begin(), R.end());
+		R.erase(std::unique(R.begin(), R.end()), R.end());
 
-	Show(R);
-	/** /
-	DType D;
-	D.resize(4);
-	for (auto& o : D) { o.resize(4); }
-	SetMino(D, M[0], 0, 0, 1);
-	Show({ D });
-	UnSetMino(D, M[0], 0, 0);
-	Show({ D });
+		Show(R);
+	}
+	/** /{
+
+		RType R = MakeHoge(M, 8, 8);//this is heavy, can't arrive answer?
+
+		std::sort(R.begin(), R.end());
+		R.erase(std::unique(R.begin(), R.end()), R.end());
+
+		Show(R);
+	}
 	/**/
 	return 0;
 
